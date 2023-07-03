@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Infrasturacture": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ConnectionStrings:Blog": "host=47.113.220.1;Port=3306;uid=root;pwd=Maf@@12138;Database=Afblog"
+      }
+    }
+  }
+}
