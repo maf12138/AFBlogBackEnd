@@ -1,6 +1,11 @@
 ﻿using Domain;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Dapper;
+using System.Data;
+using Microsoft.Extensions.Options;
+using Infrasturacture.Dapper;
+using MySqlConnector;
 
 namespace Infrasturacture
 {
@@ -8,10 +13,13 @@ namespace Infrasturacture
     {
         private readonly BlogDbContext db;
 
+
         public CommentRepository(BlogDbContext db)
         {
             this.db = db;
+
         }
+
         public async Task AddComment(Comment comment)
         {
             await db.AddAsync(comment);

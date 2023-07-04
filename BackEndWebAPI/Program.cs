@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc;
 using BackEndWebAPI.Filters;
 using BackEndWebAPI.Configs;
 using MySqlConnector;
+using Domain.Interface;
+using Infrasturacture.Dapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,8 @@ builder.Services.Configure<QiNiuOptions>(builder.Configuration.GetSection("QiNiu
 //var qiniu = builder.Configuration.GetSection("QiNiuKey").Get<QiNiuOptions>();
 //Console.WriteLine(qiniu.AccessKey+"----------");
 
+//注入获取Mysql连接的工厂类
+builder.Services.AddScoped<IDbConnectionFactory, DapperDbConnectionFactory>();
 
 builder.Services.AddDbContext<BlogDbContext>(opt =>
 {

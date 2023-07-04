@@ -1,11 +1,14 @@
 ﻿using BackEndWebAPI.VO;
 using BackEndWebAPI.WebAPIExtensions;
+using Dapper;
 using Domain;
 using Domain.Entities;
+using Domain.Interface;
 using Infrasturacture;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MySqlConnector;
 using System.Security.Claims;
 
 namespace BackEndWebAPI.Controllers.CommentController
@@ -20,33 +23,42 @@ namespace BackEndWebAPI.Controllers.CommentController
         private readonly CommentDomainService commentDomainService;
         private readonly IdentityDomainService identityDomainService;
         private readonly BlogDbContext blogDbContext;
+        private readonly IDbConnectionFactory _dbConnectionFactory;
 
-        public CommentController(ArticleDomainService articleDomainService, IdentityDomainService identityDomainService, CommentDomainService commentDomainService, BlogDbContext blogDbContext)
+        public CommentController(ArticleDomainService articleDomainService, IdentityDomainService identityDomainService, CommentDomainService commentDomainService, BlogDbContext blogDbContext,IDbConnectionFactory dbConnectionFactory)
         {
             this.articleDomainService = articleDomainService;
             this.identityDomainService = identityDomainService;
             this.commentDomainService = commentDomainService;
             this.blogDbContext = blogDbContext;
+            _dbConnectionFactory = dbConnectionFactory;
         }
         //获取指定文章的评论
         [HttpGet("/api/comment/commentList")]
-        public async Task<ResponseResult<PageVo<Comment>>> GetCurrentArticleComments([FromQuery]int articleId, [FromQuery]int pageNum, [FromQuery]int pageSize)
+        public async Task<ResponseResult<PageVo<CommentVO>>> GetCurrentArticleComments([FromQuery]int articleId, [FromQuery]int pageNum, [FromQuery]int pageSize)
         {
             // 查询所有该文章评论
             //关联查询用户信息
-            var comments = await commentDomainService.GetCommentsByArticleIdAsync(articleId);
-            comments = blogDbContext.Comments.Where(a => a.ArticleId == articleId).Include(a => a.CommentUser).OrderByDescending(a => a.CreateTime);
+          //  var comments = await commentDomainService.GetCommentsByArticleIdAsync(articleId);
+            await using MySqlConnection mySqlConnection = _dbConnectionFactory.CreateConnection();
+            var comments = await mySqlConnection.QueryAsync<CommentVO>(
+                @"SELECT T_Comments.Id,ArticleId,avatar,T_Comments.CreateTime,T_Comments.UserName,T_Comments.Content
+                  From T_Comments 
+                Left Join T_Users On CommentUserId = T_Users.Id
+                Where ArticleId = @articleId"
+, new
+{
+    articleId
+}) ;
+        //    comments = blogDbContext.Comments.Where(a => a.ArticleId == articleId).Include(a => a.CommentUser).OrderByDescending(a => a.CreateTime);
             int total = comments.Count();  
             if (comments == null)
             {
-                return new ResponseResult<PageVo<Comment>>(200, "没有评论", null);
+                return new ResponseResult<PageVo<CommentVO>>(200, "没有评论", null);
             }
-            
             comments =comments.Skip((pageNum - 1) * pageSize).Take(pageSize);
-            var pageVo = new PageVo<Comment>(total ,comments.ToList());
-
-
-            return new ResponseResult<PageVo<Comment>>(200,"获取成功",pageVo);
+            var pageVo = new PageVo<CommentVO>(total ,comments.ToList());
+            return new ResponseResult<PageVo<CommentVO>>(200,"获取成功",pageVo);
         }
 
         //个人添加评论
