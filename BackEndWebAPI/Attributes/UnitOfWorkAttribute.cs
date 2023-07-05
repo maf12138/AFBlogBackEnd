@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BackEndWebAPI.WebAPIExtensions
+namespace BackEndWebAPI.Attributes
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     public class UnitOfWorkAttribute : Attribute
@@ -8,7 +8,7 @@ namespace BackEndWebAPI.WebAPIExtensions
         public Type[] DbContextTypes { get; init; }
         public UnitOfWorkAttribute(params Type[] dbContextTypes)
         {
-            this.DbContextTypes = dbContextTypes;
+            DbContextTypes = dbContextTypes;
             foreach (var type in dbContextTypes)
             {
                 if (!typeof(DbContext).IsAssignableFrom(type))
