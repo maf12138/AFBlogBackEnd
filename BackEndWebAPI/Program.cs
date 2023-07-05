@@ -94,6 +94,7 @@ builder.Services.Configure<MvcOptions>(opt =>
 {
     opt.Filters.Add<JWTValidationFilter>();//配置JWT筛选器用于检查JWT的Version
     opt.Filters.Add<GlobalExceptionFilter>();//配置全局异常筛选器,会覆盖掉默认的异常处理,中间件等,后台线程的异常不会被捕获
+    opt.Filters.Add<TransactionScopeFilter>();//配置自动启用事务的操作筛选器
 });
 # endregion
 # region 注册并配置Identity
