@@ -2,7 +2,7 @@
 
 docker运行
 ```shell
-docker run --name afblog0.4 -d -e MAF_MYSQL_CONN='你的连接字符串'  maf12138/backendwebapi:0.4
+docker run --name afblog0.5 -d -e MAF_MYSQL_CONN='你的连接字符串'  maf12138/backendwebapi:0.5
 ```
 
 或者本地运行
