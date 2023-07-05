@@ -95,6 +95,7 @@ builder.Services.Configure<MvcOptions>(opt =>
     opt.Filters.Add<JWTValidationFilter>();//配置JWT筛选器用于检查JWT的Version
     opt.Filters.Add<GlobalExceptionFilter>();//配置全局异常筛选器,会覆盖掉默认的异常处理,中间件等,后台线程的异常不会被捕获
     opt.Filters.Add<TransactionScopeFilter>();//配置自动启用事务的操作筛选器
+    opt.Filters.Add<RateLimitFilter>();//配置限流操作筛选器
 });
 # endregion
 # region 注册并配置Identity
@@ -194,7 +195,7 @@ app.UseStaticFiles(videoStaticFileOptions).UseDirectoryBrowser(videoDirectoryBro
 app.UseStaticFiles(docStaticFileOptions).UseDirectoryBrowser(docDirectoryBrowserOptions); //注意中间件use(也就是注册)顺序,官方有介绍静态文件的授权
 # endregion
 //app.UseHttpsRedirection();//需要在服务器上配置证书,关掉可以优化性能,证书配置在nginx上
-//app.UseForwardedHeaders();//这个可以获取到客户端IP地址
+app.UseForwardedHeaders();//这个可以获取到客户端IP地址
 app.UseCors();// 跨域
 app.UseAuthentication();
 app.UseAuthorization();
