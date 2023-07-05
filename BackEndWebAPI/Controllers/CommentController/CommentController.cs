@@ -7,9 +7,8 @@ using Domain.Interface;
 using Infrasturacture;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
-using System.Security.Claims;
+
 
 namespace BackEndWebAPI.Controllers.CommentController
 {
@@ -25,7 +24,7 @@ namespace BackEndWebAPI.Controllers.CommentController
         private readonly BlogDbContext blogDbContext;
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
-        public CommentController(ArticleDomainService articleDomainService, IdentityDomainService identityDomainService, CommentDomainService commentDomainService, BlogDbContext blogDbContext,IDbConnectionFactory dbConnectionFactory)
+        public CommentController(ArticleDomainService articleDomainService, IdentityDomainService identityDomainService, CommentDomainService commentDomainService, BlogDbContext blogDbContext, IDbConnectionFactory dbConnectionFactory)
         {
             this.articleDomainService = articleDomainService;
             this.identityDomainService = identityDomainService;
@@ -33,38 +32,36 @@ namespace BackEndWebAPI.Controllers.CommentController
             this.blogDbContext = blogDbContext;
             _dbConnectionFactory = dbConnectionFactory;
         }
+
         //获取指定文章的评论
         [HttpGet("/api/comment/commentList")]
-        public async Task<ResponseResult<PageVo<CommentVO>>> GetCurrentArticleComments([FromQuery]int articleId, [FromQuery]int pageNum, [FromQuery]int pageSize)
+        public async Task<ResponseResult<PageVo<CommentVO>>> GetCurrentArticleComments([FromQuery] int articleId, [FromQuery] int pageNum, [FromQuery] int pageSize)
         {
-            // 查询所有该文章评论
-            //关联查询用户信息
-          //  var comments = await commentDomainService.GetCommentsByArticleIdAsync(articleId);
             await using MySqlConnection mySqlConnection = _dbConnectionFactory.CreateConnection();
             var comments = await mySqlConnection.QueryAsync<CommentVO>(
                 @"SELECT T_Comments.Id,ArticleId,avatar,T_Comments.CreateTime,T_Comments.UserName,T_Comments.Content
                   From T_Comments 
                 Left Join T_Users On CommentUserId = T_Users.Id
                 Where ArticleId = @articleId"
-, new
-{
-    articleId
-}) ;
-        //    comments = blogDbContext.Comments.Where(a => a.ArticleId == articleId).Include(a => a.CommentUser).OrderByDescending(a => a.CreateTime);
-            int total = comments.Count();  
+        , new
+        {
+            articleId
+        });
+            //    comments = blogDbContext.Comments.Where(a => a.ArticleId == articleId).Include(a => a.CommentUser).OrderByDescending(a => a.CreateTime);
+            int total = comments.Count();
             if (comments == null)
             {
                 return new ResponseResult<PageVo<CommentVO>>(200, "没有评论", null);
             }
-            comments =comments.Skip((pageNum - 1) * pageSize).Take(pageSize);
-            var pageVo = new PageVo<CommentVO>(total ,comments.ToList());
-            return new ResponseResult<PageVo<CommentVO>>(200,"获取成功",pageVo);
+            comments = comments.Skip((pageNum - 1) * pageSize).Take(pageSize);
+            var pageVo = new PageVo<CommentVO>(total, comments.ToList());
+            return new ResponseResult<PageVo<CommentVO>>(200, "获取成功", pageVo);
         }
 
         //个人添加评论
         [HttpPost("/api/comment")]
         [Authorize]
-        public async Task<ResponseResult<object>> AddComment([FromHeader] string token,AddCommentRequest request)
+        public async Task<ResponseResult<object>> AddComment([FromHeader] string token, AddCommentRequest request)
         {
             var article = await articleDomainService.FindArticleByIdAsync(request.articleId);
             if (article == null)
@@ -86,7 +83,7 @@ namespace BackEndWebAPI.Controllers.CommentController
         //个人更新评论
         [HttpPut("/api/comment")]
         [Authorize]
-        public async Task<ResponseResult<object>>UpdateComment(Guid id,int articleId, string content, [FromHeader] string token)
+        public async Task<ResponseResult<object>> UpdateComment(Guid id, int articleId, string content, [FromHeader] string token)
         {
             //自己的逻辑中articleid没用上,推测可以通过articleId查到文章对应的comments然后再做处理
             var user = await identityDomainService.FIndUserByTokenAsync(token);
@@ -99,7 +96,7 @@ namespace BackEndWebAPI.Controllers.CommentController
             {
                 return new ResponseResult<object>(404, "未找到评论", null);
             }
-           if (comment.CommentUser.Id == user.Id)//居然不为空
+            if (comment.CommentUser.Id == user.Id)//居然不为空
             {
                 comment.UpdateComment(content);
                 await blogDbContext.SaveChangesAsync();
@@ -113,8 +110,8 @@ namespace BackEndWebAPI.Controllers.CommentController
         }
         //个人删除评论   
         [HttpDelete("/api/comment/{id}")]
-       [Authorize]
-        public async Task<ResponseResult<object>> DeleteComment(Guid id ,[FromHeader] string token)
+        [Authorize]
+        public async Task<ResponseResult<object>> DeleteComment(Guid id, [FromHeader] string token)
         {
             var user = await identityDomainService.FIndUserByTokenAsync(token);
             if (user == null)
@@ -122,11 +119,11 @@ namespace BackEndWebAPI.Controllers.CommentController
                 return new ResponseResult<object>(404, "未找到用户", null);
             }
             var comment = await commentDomainService.FindCommentByIdAsync(id);
-            if(comment == null)
+            if (comment == null)
             {
                 return new ResponseResult<object>(404, "未找到评论", null);
             }
-            if(comment.CommentUser.Id == user.Id)
+            if (comment.CommentUser.Id == user.Id)
             {
                 blogDbContext.Remove(comment);
                 await blogDbContext.SaveChangesAsync();
