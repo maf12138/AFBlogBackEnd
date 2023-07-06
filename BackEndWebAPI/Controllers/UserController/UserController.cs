@@ -67,6 +67,9 @@ namespace BackEndWebAPI.Controllers.UserController
         [Authorize]
         public async Task<ResponseResult<object>> UpdateUserInfo(UserDTO userDTO)
         {
+            var validator = new UserDTOValidator(_blogDbContext);
+            var validatorResult = await validator.ValidateAsync(userDTO);
+            if (!validatorResult.IsValid) return ResponseResult<object>.ErrorResult(400, validatorResult.Errors.First().ErrorMessage);
             var user = await _IdentityRepository.FindUserByIdAsync(userDTO.id.ToString());
             if (user == null)
             {

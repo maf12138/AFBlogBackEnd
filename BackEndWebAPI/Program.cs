@@ -15,6 +15,10 @@ using MySqlConnector;
 using Domain.Interface;
 using Infrasturacture.Dapper;
 using BackEndWebAPI.Middleware;
+using FluentValidation.AspNetCore;
+using FluentValidation;
+using BackEndWebAPI.DTO;
+
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 # region 第三方库配置
@@ -36,7 +40,13 @@ webBuilder.ConfigureAppConfiguration((hostCtx, configBuilder) => {
     string connStr = Environment.GetEnvironmentVariable("MAF_MYSQL_CONN"); // builder.Configuration.GetSection("MafMySQLConn").Value;//.NET 6写法,之前的写法可以看文档
     configBuilder.AddDbConfiguration(() => new MySqlConnection(connStr), reloadOnChange: true, reloadInterval: TimeSpan.FromSeconds(2));// 这里AddDbConfiguration以扩展方法的形式配置了连接上对应的表
 });
-
+//注册FluentValidation
+https://github.com/FluentValidation/FluentValidation/blob/main/docs/aspnet.md
+//推荐手动注册,写多了就使用扩展方法注册
+//builder.Services.AddValidatorsFromAssemblyContaining<UserDTOValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+//builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddScoped<IValidator<UserDTO>, UserDTOValidator>();
 # endregion
 # region jwt配置
 //注册jwt配置实例,可以改为从数据库读取
