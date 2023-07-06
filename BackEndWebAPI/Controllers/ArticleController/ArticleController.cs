@@ -119,11 +119,12 @@ namespace BackEndWebAPI.Controllers.ArticleController
                     result = result.Where(a => a.CreateTime.Year == Convert.ToInt32(dateArr[0]) && a.CreateTime.Month == Convert.ToInt32(dateArr[1]));
                 }
             }
+            result = result.OrderByDescending(a => a.CreateTime);
             result = result.Skip((intPageNum-1)*pageSize).Take(pageSize);
             var articleList = _mapper.Map<IEnumerable<ArticleListVo>>(result);
             var PageVo = new PageVo<ArticleListVo>
             (
-                articleList.Count(),
+                _blogDbContext.Articles.Count(),
                 articleList.ToList()
             );
             return new ResponseResult<PageVo<ArticleListVo>>(200,"操作成功",PageVo);
