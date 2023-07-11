@@ -31,17 +31,16 @@ builder.Services.AddAutoMapper(typeof(ArticleMapProfile).Assembly, typeof(UserMa
 //注册EF Core的DbContext
 builder.Services.AddDbContext<BlogDbContext>(opt =>
 {
-    string connStr = Environment.GetEnvironmentVariable("MAF_MYSQL_CONN");//builder.Configuration.GetSection("MafMySQLConn").Value;//.GetConnectionString("MySQLConn");//也可用该方法-使用appsetting.json中存储的连接字符串
+    string connStr = Environment.GetEnvironmentVariable("MAF_MYSQL_CONN")!;//builder.Configuration.GetSection("MafMySQLConn").Value;//.GetConnectionString("MySQLConn");//也可用该方法-使用appsetting.json中存储的连接字符串
     opt.UseMySql(connStr, new MySqlServerVersion(new Version(8, 0, 32)));
 }, ServiceLifetime.Scoped);//向容器注入BlogDbContext
 //使用 第三方库Zack.AnyDBConfigProvider,从数据库T_Configs表中读取部分配置,数据库连接字符串从用户机密中读取
 var webBuilder = builder.WebHost;
 webBuilder.ConfigureAppConfiguration((hostCtx, configBuilder) => {
-    string connStr = Environment.GetEnvironmentVariable("MAF_MYSQL_CONN"); // builder.Configuration.GetSection("MafMySQLConn").Value;//.NET 6写法,之前的写法可以看文档
+    string connStr = Environment.GetEnvironmentVariable("MAF_MYSQL_CONN")!; // builder.Configuration.GetSection("MafMySQLConn").Value;//.NET 6写法,之前的写法可以看文档
     configBuilder.AddDbConfiguration(() => new MySqlConnection(connStr), reloadOnChange: true, reloadInterval: TimeSpan.FromSeconds(2));// 这里AddDbConfiguration以扩展方法的形式配置了连接上对应的表
 });
-//注册FluentValidation
-https://github.com/FluentValidation/FluentValidation/blob/main/docs/aspnet.md
+//注册FluentValidation https://github.com/FluentValidation/FluentValidation/blob/main/docs/aspnet.md
 //推荐手动注册,写多了就使用扩展方法注册
 //builder.Services.AddValidatorsFromAssemblyContaining<UserDTOValidator>();
 //builder.Services.AddValidatorsFromAssemblyContaining<Program>();
