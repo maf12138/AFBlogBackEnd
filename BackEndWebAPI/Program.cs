@@ -15,7 +15,6 @@ using MySqlConnector;
 using Domain.Interface;
 using Infrasturacture.Dapper;
 using BackEndWebAPI.Middleware;
-using FluentValidation.AspNetCore;
 using FluentValidation;
 using BackEndWebAPI.DTO;
 
